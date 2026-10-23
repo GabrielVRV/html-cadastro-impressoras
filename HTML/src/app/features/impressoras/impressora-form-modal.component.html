@@ -1,0 +1,45 @@
+<po-modal
+  [p-title]="titulo()"
+  p-size="lg"
+  [p-primary-action]="acaoSalvar()"
+  [p-secondary-action]="acaoCancelar"
+>
+  <form [formGroup]="form">
+    <div class="po-row">
+      <po-input
+        class="po-sm-12 po-md-8"
+        formControlName="nome"
+        p-label="Nome"
+        p-help="Como a impressora aparece para quem vai imprimir"
+        [p-maxlength]="tamanhoNome"
+        [p-required]="true"
+      />
+      <po-select
+        class="po-sm-12 po-md-4"
+        formControlName="tipo"
+        p-label="Tipo"
+        [p-options]="opcoesTipo()"
+        [p-required]="true"
+      />
+    </div>
+    <div class="po-row">
+      <po-input
+        class="po-sm-12"
+        formControlName="caminho"
+        p-label="Caminho"
+        p-help="Destino para onde a impressão é enviada, ex.: \\servidor\impressora"
+        [p-maxlength]="tamanhoCaminho"
+        [p-required]="true"
+      />
+    </div>
+    <div class="po-row">
+      <po-switch
+        class="po-sm-12"
+        formControlName="ativa"
+        p-label="Ativa"
+        p-label-on="Sim, aparece para os outros programas"
+        p-label-off="Não, fica fora das listas até ser reativada"
+      />
+    </div>
+  </form>
+</po-modal>

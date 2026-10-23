@@ -1,0 +1,31 @@
+<po-page-list p-title="Impressoras" [p-filter]="pesquisa" [p-actions]="acoesPagina">
+  <section class="app-cartao">
+    <div class="po-row app-filtros">
+      <po-select
+        class="po-sm-12 po-md-4"
+        p-label="Tipo"
+        [formControl]="filtroTipo"
+        [p-options]="opcoesTipo()"
+      />
+      <po-radio-group
+        class="po-sm-12 po-md-8"
+        p-label="Situação"
+        [formControl]="filtroSituacao"
+        [p-options]="opcoesSituacao"
+        [p-columns]="3"
+      />
+    </div>
+
+    <po-table
+      [p-columns]="colunas()"
+      [p-items]="impressoras()"
+      [p-actions]="acoesLinha"
+      [p-loading]="carregando()"
+      [p-hide-columns-manager]="true"
+      [p-text-wrap]="true"
+      [p-literals]="{ noData: 'Nenhuma impressora encontrada' }"
+    />
+  </section>
+
+  <app-impressora-form-modal [tipos]="tipos()" (salvo)="recarregar()" />
+</po-page-list>
