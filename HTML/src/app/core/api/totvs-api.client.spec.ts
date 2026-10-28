@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { API_BASE_URL } from './api-base-url.token';
 import { ApiError } from './api-error';
-import { TotvsApiClient } from './totvs-api.client';
+import { MENSAGEM_SEM_SESSAO, TotvsApiClient } from './totvs-api.client';
 
 describe('TotvsApiClient', () => {
   let client: TotvsApiClient;
@@ -48,5 +48,21 @@ describe('TotvsApiClient', () => {
     http.expectOne('/api/impressoras/').flush('', { status: 500, statusText: 'Server Error' });
 
     await expect(resposta).rejects.toBeInstanceOf(ApiError);
+  });
+
+  it('avisa para abrir pelo TOTVS quando a sessão é recusada', async () => {
+    const resposta = firstValueFrom(client.post('impressoras/'));
+    http.expectOne('/api/impressoras/').flush('', { status: 401, statusText: 'Unauthorized' });
+
+    await expect(resposta).rejects.toEqual(new ApiError(MENSAGEM_SEM_SESSAO));
+  });
+
+  it('avisa para abrir pelo TOTVS quando volta a página de login no lugar do JSON', async () => {
+    const resposta = firstValueFrom(client.post('impressoras/'));
+    http
+      .expectOne('/api/impressoras/')
+      .flush('<html><body>Login</body></html>', { status: 200, statusText: 'OK' });
+
+    await expect(resposta).rejects.toEqual(new ApiError(MENSAGEM_SEM_SESSAO));
   });
 });

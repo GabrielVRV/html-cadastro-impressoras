@@ -110,6 +110,13 @@ npm test           # testes unitários (Vitest)
 npm run build      # build de produção em HTML/dist/cadastro-impressoras
 ```
 
+**Bloqueio fora do Datasul:** o build publicado só abre dentro do iframe do menu do Datasul
+(`window.self !== window.top`, em `src/app/app.ts`, mesmo padrão das outras telas HTML
+do Datasul). Aberta direto pelo link, mostra "Acesso restrito" e nem monta as telas, então nada
+chama a API. Em `npm start` o bloqueio fica desligado (`bloquearForaDoDatasul` no
+`environment.development.ts`). É só de interface: quem barra de verdade é o Datasul, que não
+responde a API sem sessão; se a sessão cair com a tela aberta, ela avisa para abrir pelo menu.
+
 ## Implantação
 
 1. Carregar `_Progress/DFs/es-impressora.df` no banco das tabelas específicas (Data Administration → Load Data Definitions).
@@ -123,10 +130,12 @@ npm run build      # build de produção em HTML/dist/cadastro-impressoras
 1. **.df** carrega sem erro.
 2. **Compilação** dos `.p`.
 3. **Rotas com hífen** (`salvar-impressora/` etc.) são encontradas pelo `ut-api-action.i`.
-4. **Incluir / alterar / inativar / excluir** pela tela e conferir no banco.
+4. **Incluir / alterar / inativar / excluir** pela tela e conferir no banco. Imprimir um teste
+   em cada caminho cadastrado.
 5. **Nome + caminho repetido** (inclusive com maiúsculas diferentes) é recusado; mesmo nome com
    outro caminho é aceito.
 6. **Tipo inválido** (0 ou maior que 3 no payload de `salvar-impressora/`) é recusado pelo RP.
 7. **Lock**: alterar a mesma impressora em duas sessões → a segunda recebe "sendo alterada por outro usuario".
 8. **id inválido** ou de impressora já excluída → "Impressora nao encontrada".
 9. **`ativas/`** não traz impressora inativa; `pi-impressora-valida` recusa caminho de impressora inativa.
+10. **Acesso direto** pela URL da tela mostra "Acesso restrito"; pelo menu do Datasul abre normal.

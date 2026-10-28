@@ -15,6 +15,14 @@ export interface RespostaTotvs {
 }
 
 /**
+ * A tela não manda token: a API autentica pelo cookie de sessão do Datasul, então só
+ * funciona aberta pelo menu do TOTVS. Sem sessão o servidor responde 401/403 ou devolve
+ * a página de login (HTML com status 200), que o HttpClient não consegue ler como JSON.
+ */
+export const MENSAGEM_SEM_SESSAO =
+  'Sessão do TOTVS não encontrada ou expirada. Abra a tela pelo menu do Datasul.';
+
+/**
  * Cliente das APIs ut-api do Datasul. Erros de negócio chegam com HTTP 200 e
  * cod_erro <> 0 em tt_retorno; aqui eles viram ApiError, igual aos erros HTTP.
  */
@@ -31,6 +39,9 @@ export class TotvsApiClient {
   }
 
   private validarRetorno<T extends RespostaTotvs>(resposta: T): T {
+    // Texto no lugar do objeto JSON: é a página de login, não a API.
+    if (typeof resposta !== 'object' || resposta === null) throw new ApiError(MENSAGEM_SEM_SESSAO);
+
     const erro = resposta.tt_retorno?.find((retorno) => retorno.cod_erro !== 0);
     if (erro) throw new ApiError(erro.desc_erro);
     return resposta;
@@ -39,10 +50,15 @@ export class TotvsApiClient {
   private normalizarErro(erro: unknown): ApiError {
     if (erro instanceof ApiError) return erro;
     if (erro instanceof HttpErrorResponse) {
-      return erro.status === 0
-        ? new ApiError('Não foi possível conectar ao servidor.')
-        : new ApiError(`Erro ${erro.status} ao chamar o servidor: ${erro.statusText}`);
+      if (erro.status === 0) return new ApiError('Não foi possível conectar ao servidor.');
+      if (this.semSessao(erro)) return new ApiError(MENSAGEM_SEM_SESSAO);
+      return new ApiError(`Erro ${erro.status} ao chamar o servidor: ${erro.statusText}`);
     }
     return new ApiError('Erro inesperado ao chamar o servidor.');
+  }
+
+  /** 401/403, ou resposta 2xx que não é JSON (a página de login no lugar da API). */
+  private semSessao(erro: HttpErrorResponse): boolean {
+    return erro.status === 401 || erro.status === 403 || (erro.status >= 200 && erro.status < 300);
   }
 }
